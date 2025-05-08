@@ -20,6 +20,14 @@ class PaymentController extends Controller
         ])->get(env("APP_GATEWAY") . '/order/order/' . $order_id);
 
         $order = $response->json();
+
+        if(!$order) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Número de ordem não existe"
+            ]);
+        }
+
         return response()->json([
             "payment" => [
                 "link" => route("pay"),
