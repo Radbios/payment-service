@@ -47,7 +47,7 @@ class PaymentController extends Controller
 
         $response = Http::withHeaders([
             "Authorization" => "Bearer " . $request->bearerToken()
-        ])->get('127.0.0.1:8001/api/order/' . $order_id);
+        ])->get(env("APP_GATEWAY") . '/order/order/' . $order_id);
 
         $order = $response->json();
 
@@ -60,11 +60,11 @@ class PaymentController extends Controller
 
         $response = Http::withHeaders([
             "Authorization" => "Bearer " . $request->bearerToken()
-        ])->put('127.0.0.1:8001/api/order/' . $order_id);
+        ])->put(env("APP_GATEWAY") . '/order/order/' . $order_id);
 
         $response = Http::withHeaders([
             "Authorization" => "Bearer " . $request->bearerToken()
-        ])->post('127.0.0.1:8002/api/cart/clean');
+        ])->post(env("APP_GATEWAY") . '/cart/cart/clean');
 
         return response()->json([
             "message" => "Pagamento efetuado com sucesso!",
