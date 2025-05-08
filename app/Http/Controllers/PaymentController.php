@@ -45,6 +45,21 @@ class PaymentController extends Controller
 
         $order_id = $validated["order_id"];
 
+        
+
+        $response = Http::withHeaders([
+            "Authorization" => "Bearer " . $request->bearerToken()
+        ])->get(env("APP_GATEWAY") . '/order/order/' . $order_id);
+
+        $order = $response->json();
+
+        if(!$order) {
+            return response()->json([
+                "status" => "error",
+                "message" => "Número de ordem não existe"
+            ]);
+        }
+
         $response = Http::withHeaders([
             "Authorization" => "Bearer " . $request->bearerToken()
         ])->put(env("APP_GATEWAY") . '/order/order/' . $order_id);
