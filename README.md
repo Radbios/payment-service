@@ -7,55 +7,98 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+# Payment Service - Sistema de E-commerce com Microsserviços
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Este microsserviço é responsável pelo processamento de pagamentos no sistema de e-commerce distribuído. Ele consulta os dados de um pedido existente, simula a efetivação do pagamento e atualiza o status do pedido no backend. Após a confirmação, também limpa o carrinho de compras do usuário.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## Funcionalidades
 
-## Learning Laravel
+* Consultar um pedido a partir do seu ID
+* Simular o pagamento de um pedido
+* Atualizar o status do pedido como "pago"
+* Limpar o carrinho do usuário após o pagamento
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+## Integração com outros serviços
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+Este serviço se comunica com os seguintes microsserviços por meio do API Gateway:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Serviço       | Finalidade da integração                                        |
+| ------------- | --------------------------------------------------------------- |
+| order-service | Recuperar e atualizar o status do pedido                        |
+| cart-service  | Limpar os itens do carrinho após o pagamento                    |
+| gateway       | Todas as chamadas externas são roteadas por ele (`APP_GATEWAY`) |
 
-## Laravel Sponsors
+## Rotas disponíveis
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+As rotas estão protegidas por middleware de autenticação JWT.
 
-### Premium Partners
+### GET `/api/service/payment/payment`
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development/)**
-- **[Active Logic](https://activelogic.com)**
+Consulta um pedido pelo `order_id` e retorna as informações do pedido junto ao link para simulação de pagamento.
 
-## Contributing
+**Parâmetros da requisição:**
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```json
+{
+  "order_id": "123"
+}
+```
 
-## Code of Conduct
+**Resposta de sucesso:**
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```json
+{
+  "payment": {
+    "link": "http://localhost:8000/api/service/payment/payment",
+    "method": "post"
+  },
+  "order": { ... }
+}
+```
 
-## Security Vulnerabilities
+### POST `/api/service/payment/payment`
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Efetiva o pagamento de um pedido e realiza as seguintes ações:
 
-## License
+1. Consulta o pedido
+2. Atualiza seu status
+3. Limpa o carrinho do usuário
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+**Parâmetros da requisição:**
+
+```json
+{
+  "order_id": "123"
+}
+```
+
+**Resposta de sucesso:**
+
+```json
+{
+  "message": "Pagamento efetuado com sucesso!",
+  "order": { ... }
+}
+```
+
+## Estrutura do projeto
+
+| Arquivo                 | Função                                                   |
+| ----------------------- | -------------------------------------------------------- |
+| `PaymentController.php` | Controlador principal, com ações de consulta e pagamento |
+| `routes/api.php`        | Define as rotas da API protegidas por JWT                |
+
+## Requisitos
+
+* Laravel 11
+* PHP 8.2+
+* Token de autenticação válido (JWT)
+* API Gateway configurado via variável `APP_GATEWAY`
+
+## Observações
+
+Este microsserviço não processa pagamentos reais. Ele simula o fluxo de pagamento para fins de teste e integração entre serviços. O status do pedido é alterado internamente como se o pagamento tivesse sido aprovado com sucesso.
+
+---
